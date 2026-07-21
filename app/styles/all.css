@@ -1,0 +1,63 @@
+.bg_circles {
+    background: 
+        radial-gradient(circle at top, rgb(130, 28, 28), transparent 10%),
+        radial-gradient(circle at right, rgb(130, 28, 28), transparent 20%),
+        radial-gradient(circle at left, rgb(130, 28, 28), transparent 30%),
+        rgb(20, 0, 0);
+}
+
+.animation_open_menu {
+    animation-name: open_menu;
+    animation-duration: 0.1s;
+    animation-timing-function: linear;
+    animation-delay: 0ms;
+    animation-fill-mode: both;
+    animation-iteration-count: 1;
+}
+
+@keyframes open_menu {
+    from {
+        width: 4%;
+    } to {
+        width: 15%;
+    }
+}
+
+.animation_close_menu {
+    animation-name: close_menu;
+    animation-duration: 0.1s;
+    animation-timing-function: linear;
+    animation-delay: 0ms;
+    animation-fill-mode: both;
+    animation-iteration-count: 1;
+}
+
+@keyframes close_menu {
+    from {
+        width: 15%;
+    } to {
+        width: 4%;
+    }
+}
+
+
+.hidden_scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.show_modal {
+    animation-name: move_modal;
+    animation-duration: 2s;
+    animation-timing-function: ease-in-out;
+    animation-delay: 0ms;
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1;
+}
+
+@keyframes move_modal {
+    from {
+        transform: translateY(-700);
+    } to {
+        transform: translateY(0);
+    }
+}

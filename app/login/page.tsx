@@ -29,6 +29,8 @@ export default function Login() {
         })
       })
 
+      localStorage.removeItem('token');
+
       if (response.status === 200) {
         const data = await response.json()
         localStorage.setItem('token', data.token);

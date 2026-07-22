@@ -5,17 +5,24 @@ import Image from 'next/image';
 import Logo from '../../public/images/LogoNovaAI.png';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Signup() {
   const [name, setName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [text, setText] = useState<string>('');
+
+  const router = useRouter();
 
   async function postUser (e: any) {
     e.preventDefault();
+
+    setText('Creating...');
+
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/users`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -27,6 +34,20 @@ export default function Signup() {
           password: password
         })
       })
+
+      if (response.status === 409) {
+        setText("User already exist");
+        return
+      } 
+      
+      if (response.status !== 201) {
+          setText("Invalid data");
+          return
+      }
+
+      router.push('/login');
+      setTimeout(() => setText(''), 3000);
+
     } catch (error: any) {
       console.log("Error in postUser", error.message);
     }
@@ -50,19 +71,20 @@ export default function Signup() {
             <div className='flex flex-wrap justify-between gap-3'>
               <label className='flex flex-col text-medium font-medium w-full gap-1'>
                 Name:
-                <input value={name} onChange={(e) => setName(e.target.value)} className='text-sm font-normal py-2 px-1 outline-2 outline-red-800 focus:outline-red-800 rounded-sm' placeholder='name' />
+                <input value={name} onChange={(e) => setName(e.target.value)} maxLength={50} className='text-sm font-normal py-2 px-1 outline-2 outline-red-800 focus:outline-red-800 rounded-sm' placeholder='name' />
               </label>
               <label className='flex flex-col text-medium font-medium w-full gap-1'>
                 Last name:
-                <input value={lastName} onChange={(e) => setLastName(e.target.value)} className='text-sm font-normal py-2 px-1 outline-2 outline-red-800 focus:outline-red-800 rounded-sm' placeholder='last name' />
+                <input value={lastName} onChange={(e) => setLastName(e.target.value)} maxLength={50} className='text-sm font-normal py-2 px-1 outline-2 outline-red-800 focus:outline-red-800 rounded-sm' placeholder='last name' />
               </label>
               <label className='flex flex-col text-medium font-medium w-full gap-1'>
                 Email:
-                <input value={email} onChange={(e) => setEmail(e.target.value)} className='text-sm font-normal py-2 px-1 outline-2 outline-red-800 focus:outline-red-800 rounded-sm' type='email' placeholder='email' />
+                <input value={email} onChange={(e) => setEmail(e.target.value)} maxLength={50} className='text-sm font-normal py-2 px-1 outline-2 outline-red-800 focus:outline-red-800 rounded-sm' type='email' placeholder='email' />
               </label>
               <label className='flex flex-col text-medium font-medium w-full gap-1'>
                 Password:
-                <input value={password} onChange={(e) => setPassword(e.target.value)} className='text-sm font-normal py-2 px-1 outline-2 outline-red-800 focus:outline-red-800 rounded-sm' type='password' placeholder='password'/>
+                <input value={password} onChange={(e) => setPassword(e.target.value)} maxLength={100} className='text-sm font-normal py-2 px-1 outline-2 outline-red-800 focus:outline-red-800 rounded-sm' type='password' placeholder='password'/>
+                <p className={'text-right text-[0.9rem] font-normal' + (text !== 'Creating...' ? ' text-red-500 ' : ' text-blue-400 ')}>{text}</p>
               </label>
             </div>
             <div className='h-full mt-8'>

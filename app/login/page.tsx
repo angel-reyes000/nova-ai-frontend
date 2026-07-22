@@ -61,11 +61,11 @@ export default function Login() {
             <div className='flex flex-wrap justify-between gap-3'>
               <label className='flex flex-col text-medium font-medium w-full gap-1'>
                 Email:
-                <input value={email} onChange={(e) => setEmail(e.target.value)} className='text-sm font-normal py-2 px-1 outline-2 outline-red-800 focus:outline-red-800 rounded-sm' type='email' placeholder='email' />
+                <input value={email} onChange={(e) => setEmail(e.target.value)} maxLength={50} className='text-sm font-normal py-2 px-1 outline-2 outline-red-800 focus:outline-red-800 rounded-sm' type='email' placeholder='email' />
               </label>
               <label className='flex flex-col text-medium font-medium w-full gap-1'>
                 Password:
-                <input value={password} onChange={(e) => setPassword(e.target.value)} className='text-sm font-normal py-2 px-1 outline-2 outline-red-800 focus:outline-red-800 rounded-sm' type='password' placeholder='password'/>
+                <input value={password} onChange={(e) => setPassword(e.target.value)} maxLength={100} className='text-sm font-normal py-2 px-1 outline-2 outline-red-800 focus:outline-red-800 rounded-sm' type='password' placeholder='password'/>
                 <p className={'text-right text-[0.9rem] font-normal' + (access === 'Logging in...' ? ' text-blue-400 ' : ' text-red-500 ')}>{access}</p>
               </label>
             </div>

@@ -37,9 +37,12 @@ export default function chatNovaAI() {
   const [openMenu, setOpenMenu] = useState<boolean>(false);
   const [inputUser, setInputUser] = useState<string>('');
   const [inputOutput, setInputOutput] = useState(message_list);
+  const [conversations, setConversations] = useState<any>();
+
   const [titleModal, setTitleModal] = useState<string>('');
   const [textModal, setTextModal] = useState<string>('');
   const [textButtonModal, setTextButtonModal] = useState<string>('');
+
   const [token, setToken] = useState<boolean>(true);
 
   const refModalPrecuation = useRef<any>(null);
@@ -69,21 +72,52 @@ export default function chatNovaAI() {
       return
     }
 
-    const data = async () => {
+    const getConversations = async () => {
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/loginUser`, {
-          method: 'POST',
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/conversations`, {
+          method: 'GET',
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         })
+
+        const data = await response.json();
+        setConversations(data.data);
+        
       } catch (error) {
         console.log("Error to get user");
       }
     }
-    data();
+    getConversations();
 
   }, [])
+
+  async function postConversation () {
+
+    const token = localStorage.getItem('token');
+      
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/conversations`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (response.status !== 201) {
+        console.log("Error at create conversation");
+      }
+
+      const data = await response.json();
+
+      setConversations([...conversations, {id: data.data.id, title: data.data.title}])
+
+    } catch (error) {
+      console.log("Error in postConversation")
+    }
+  }
 
   return (
     <>
@@ -123,7 +157,10 @@ export default function chatNovaAI() {
               <FaPlus onClick={() => setOpenMenu(!openMenu)} size={20} className={openMenu ? ' rotate-45 cursor-pointer ' : 'hidden'} />
             </div>
             <div className={'flex flex-col gap-5' + (openMenu ? '' : ' items-center ')}>
-              <div className='flex flex-row justify-between gap-3 px-3 py-3 rounded-xl cursor-pointer hover:bg-[rgb(170,0,0)]' title={openMenu ? '' : 'New chat'}>
+              <div onClick={() => {
+                postConversation()
+                router.refresh()
+                }} className='flex flex-row justify-between gap-3 px-3 py-3 rounded-xl cursor-pointer hover:bg-[rgb(170,0,0)]' title={openMenu ? '' : 'New chat'}>
                 <FaEdit className='w-auto' size={20} />
                 <p className={'w-full text-left' + (openMenu ? '' : ' hidden ')}>New chat</p>
               </div>
@@ -143,51 +180,11 @@ export default function chatNovaAI() {
                     Recents chats
                   </div>
                   <div className='flex flex-col gap-1 overflow-scroll h-[100%] hidden_scroll w-full'>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
+                    {conversations.map(obj => (
+                      <div key={obj.id} className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
+                        {obj.title}
+                      </div>
+                    ))}
                     <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
                       Titulo de chat reciente
                     </div>

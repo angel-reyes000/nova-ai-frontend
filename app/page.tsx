@@ -31,15 +31,17 @@ const message_list = [
   }
 ]
 
-console.log(message_list.map(obj => obj.user))
-
 export default function chatNovaAI() {
   const [openMenu, setOpenMenu] = useState<boolean>(false);
   const [inputUser, setInputUser] = useState<string>('');
-  const [inputOutput, setInputOutput] = useState(message_list);
+  const [messages, setMessages] = useState<any>([]);
+  const [conversations, setConversations] = useState<any>();
+  const [conversationID, setConversationID] = useState<number>();
+
   const [titleModal, setTitleModal] = useState<string>('');
   const [textModal, setTextModal] = useState<string>('');
   const [textButtonModal, setTextButtonModal] = useState<string>('');
+
   const [token, setToken] = useState<boolean>(true);
 
   const refModalPrecuation = useRef<any>(null);
@@ -48,10 +50,20 @@ export default function chatNovaAI() {
 
   // document.addEventListener("keydown", (e) => {
   //   if (e.key === "Enter") {
-  //     setInputOutput([...inputOutput, { user: inputUser, AI: "algo" }]);
+  //     setMessages([...messages, { user: inputUser, AI: "algo" }]);
   //     setInputUser('');
   //   }
   // })
+
+  function invalidToken (): void {
+    setToken(false);
+    setTitleModal('Invalid access');
+    setTextModal('You need to log in to start chatting with Angel-IA.')
+    setTextButtonModal('Log in');
+    refModalPrecuation.current.style.display = 'flex';
+    refModalPrecuation.current.showModal();
+    return
+  };
 
   useEffect(() => {
 
@@ -60,30 +72,114 @@ export default function chatNovaAI() {
     refModalPrecuation.current.style.display = 'none';
 
     if (!token) {
-      setToken(false);
-      setTitleModal('Invalid access');
-      setTextModal('You need to log in to start chatting with Angel-IA.')
-      setTextButtonModal('Log in');
-      refModalPrecuation.current.style.display = 'flex';
-      refModalPrecuation.current.showModal();
+      invalidToken();
       return
     }
 
-    const data = async () => {
+    const getConversations = async () => {
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/loginUser`, {
-          method: 'POST',
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/conversations`, {
+          method: 'GET',
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         })
+
+        if (response.status === 400) {
+          invalidToken();
+          return
+        }
+
+        const data = await response.json();
+        setConversations(data);        
+        
       } catch (error) {
-        console.log("Error to get user");
+        console.log("Error to get conversation");
       }
     }
-    data();
+    getConversations();
 
   }, [])
+
+  // useEffect(() => {
+  //   const token = localStorage.getItem('token');
+  //   const getMessages = async () => {
+  //     try {
+  //       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/messages/${conversationID}`, {
+  //         method: 'GET',
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       })
+
+  //       const data = await response.json();
+
+  //       console.log(data)
+
+  //       setMessages([0,data,]);
+  //       router.refresh()
+  //       console.log(messages, 'dentro de messages')
+        
+
+  //     } catch (error) {
+  //       console.log("Error in getMessages")
+  //     }
+  //   }
+  //   getMessages()
+  // }, [conversationID])
+
+  async function postConversation () {
+
+    const token = localStorage.getItem('token');
+      
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/conversations`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (response.status !== 201) {
+        console.log("Error at create conversation");
+      }
+
+      const data = await response.json();
+
+      setConversations([...conversations, {id: data.id, title: data.title}])
+
+    } catch (error) {
+      console.log("Error in postConversation")
+    }
+  }
+
+  const getMessages = async (conversation_id: number) => {
+    const token = localStorage.getItem('token');
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/messages/${conversation_id}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        const data = await response.json();
+
+        console.log(data)
+
+        if (data.length > 0) {
+          setMessages(data);
+          console.log(messages, 'dentro de messages')
+        } else {
+          setMessages([])
+        }
+
+      } catch (error) {
+        console.log("Error in getMessages")
+      }
+    }
 
   return (
     <>
@@ -123,7 +219,10 @@ export default function chatNovaAI() {
               <FaPlus onClick={() => setOpenMenu(!openMenu)} size={20} className={openMenu ? ' rotate-45 cursor-pointer ' : 'hidden'} />
             </div>
             <div className={'flex flex-col gap-5' + (openMenu ? '' : ' items-center ')}>
-              <div className='flex flex-row justify-between gap-3 px-3 py-3 rounded-xl cursor-pointer hover:bg-[rgb(170,0,0)]' title={openMenu ? '' : 'New chat'}>
+              <div onClick={() => {
+                postConversation()
+                router.refresh()
+                }} className='flex flex-row justify-between gap-3 px-3 py-3 rounded-xl cursor-pointer hover:bg-[rgb(170,0,0)]' title={openMenu ? '' : 'New chat'}>
                 <FaEdit className='w-auto' size={20} />
                 <p className={'w-full text-left' + (openMenu ? '' : ' hidden ')}>New chat</p>
               </div>
@@ -143,55 +242,18 @@ export default function chatNovaAI() {
                     Recents chats
                   </div>
                   <div className='flex flex-col gap-1 overflow-scroll h-[100%] hidden_scroll w-full'>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
+                    {conversations.map((obj: {id: number, title: string}) => (
+                      <div onClick={() => {
+                        setConversationID(obj.id);
+                        getMessages(obj.id);
+                      }} key={obj.id} className='p-3 rounded-xl min-h-[45px] text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
+                        {obj.title !== ' ' ? obj.title : 'Whitout conversation'}
+                      </div>
+                    ))}
+                    <div className='p-3 rounded-xl min-h-[45px] text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
                       Titulo de chat reciente
                     </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
+                    <div className='p-3 rounded-xl min-h-[45px] text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
                       Titulo de chat reciente
                     </div>
                   </div>                
@@ -219,7 +281,7 @@ export default function chatNovaAI() {
             <div className='w-full'>
               <p className='p-3 bg-gray-500 whitespace-normal break-all max-w-[45%] w-fit rounded-lg'>Hello user, i'm a chatbot with IA API</p>
             </div>
-            {inputOutput.map(obj => (
+            {message_list.map(obj => (
               <>
                 <div className='flex justify-end w-full'>
                   <p className='p-3 bg-gray-500 whitespace-pre-wrap break-all max-w-[45%] w-fit rounded-lg'>{obj.user}</p>
@@ -228,6 +290,21 @@ export default function chatNovaAI() {
                   <p className='p-3 bg-gray-500 whitespace-pre-wrap break-all max-w-[45%] w-fit rounded-lg'>{obj.AI}</p>
                 </div>
               </>                  
+            ))}
+            {messages.map((obj: {id: number, role: string, content: string}) => (
+              obj.role === 'user' ? (
+                <>
+                  <div key={obj.id} className='flex justify-end w-full'>
+                    <p className='p-3 bg-gray-500 whitespace-pre-wrap break-all max-w-[45%] w-fit rounded-lg'>{obj.content}</p>
+                  </div>
+                </>                
+              ) : (
+                <>
+                  <div key={obj.id} className='w-full'>
+                    <p className='p-3 bg-gray-500 whitespace-pre-wrap break-all max-w-[45%] w-fit rounded-lg'>{obj.content}</p>
+                  </div>
+                </>                
+              )
             ))}              
             <div className='flex flex-cols items-center justify-between px-2 py-2 w-full fixed left-5 sm:left-10 md:left-15 lg:left-84 bottom-10 max-w-[90%] lg:max-w-[60%] bg-[rgb(80,80,80)] border border-red-400 rounded-3xl text-white'>
               <div className='flex justify-center items-center w-[5%] py-3 px-1 rounded-4xl bg-[rgb(60,0,0)]'>

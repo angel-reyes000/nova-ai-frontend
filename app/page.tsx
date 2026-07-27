@@ -3,33 +3,10 @@
 import Logo from '../public/images/LogoNovaAI.png';
 import Image from 'next/image';
 import '../app/styles/all.css';
-import { FaCircle, FaPlus, FaCommentDots, FaSearch, FaCog, FaEdit, FaMicrophone, FaUser, FaLongArrowAltRight, FaExclamationCircle, FaExclamationTriangle } from 'react-icons/fa';
+import { FaCircle, FaSignOutAlt, FaPlus, FaCommentDots, FaSearch, FaCog, FaEdit, FaMicrophone, FaUser, FaLongArrowAltRight, FaExclamationCircle, FaExclamationTriangle } from 'react-icons/fa';
 import { useState, useEffect, useRef } from 'react';
 import './styles/all.css';
 import { useRouter } from 'next/navigation';
-
-const message_list = [
-  {
-    user: "algo del userWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
-    AI: "algo sobre la AIWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
-  },
-  {
-    user: "algo segundo user",
-    AI: "algo segundo sobre la AI"
-  },
-  {
-    user: "tercer text de user",
-    AI: "tercer text de la AI"
-  },
-  {
-    user: "algo segundo user",
-    AI: "algo segundo sobre la AI"
-  },
-  {
-    user: "tercer text de user",
-    AI: "tercer text de la AI"
-  }
-]
 
 export default function chatNovaAI() {
   const [openMenu, setOpenMenu] = useState<boolean>(false);
@@ -37,6 +14,8 @@ export default function chatNovaAI() {
   const [messages, setMessages] = useState<any>([]);
   const [conversations, setConversations] = useState<any>();
   const [conversationID, setConversationID] = useState<number>();
+  const [conversationTitle, setConversationTitle] = useState<string>('');
+  const [errorGemini, setErrorGemini] = useState<string>('');
 
   const [titleModal, setTitleModal] = useState<string>('');
   const [textModal, setTextModal] = useState<string>('');
@@ -45,6 +24,7 @@ export default function chatNovaAI() {
   const [token, setToken] = useState<boolean>(true);
 
   const refModalPrecuation = useRef<any>(null);
+  const refModalSearch = useRef(null);
 
   const router = useRouter();
 
@@ -148,14 +128,18 @@ export default function chatNovaAI() {
 
       const data = await response.json();
 
-      setConversations([...conversations, {id: data.id, title: data.title}])
+      setConversations([...conversations, {id: data.id, title: !data.title ? 'Whitout conversation' : data.title}])
+      setConversationID(data.id)
+      console.log(data.id)
+      setMessages([]);
+      router.refresh()
 
     } catch (error) {
       console.log("Error in postConversation")
     }
   }
 
-  const getMessages = async (conversation_id: number) => {
+  async function getMessages (conversation_id: number) {
     const token = localStorage.getItem('token');
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/messages/${conversation_id}`, {
@@ -176,10 +160,48 @@ export default function chatNovaAI() {
           setMessages([])
         }
 
-      } catch (error) {
-        console.log("Error in getMessages")
+      } catch (error: any) {
+        console.log("Error in getMessages", error.message);
       }
     }
+
+  async function postMessages (content: string, conversation_id: number, title: string) {
+    try{
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/messages`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: content,
+          conversation_id: conversation_id,
+          title: title
+        })
+      })
+
+      if (response.status !== 200) {
+        console.log("ERROR en fetch");
+        console.log(response);
+        const data = await response.json();
+        console.log(data)
+        setErrorGemini(data.error)
+      }
+
+      const data = await response.json();
+      
+      setMessages([...messages, data[0], data[1]])
+      console.log(data)
+
+      setConversations(conversations.map((obj: {id: number, title: string}) => obj.id === conversation_id ? {...obj, title: data[2]} : obj))
+
+    } catch(error:any) {
+      console.log("Error en postMessages: ", error);
+    }
+  }
+
 
   return (
     <>
@@ -194,12 +216,15 @@ export default function chatNovaAI() {
           </div>
           ) : null}
         <h1 className='text-2xl font-bold text-white'>{titleModal}</h1>
-        <FaExclamationTriangle size={100} className='text-yellow-500' />
+        {token ? <FaSignOutAlt size={100} className='text-white' /> : <FaExclamationTriangle size={100} className='text-yellow-500' />}
         <p className='text-lg font-semibold text-white'>{textModal}</p>
         <button onClick={() => {
           localStorage.removeItem('token');
           router.push('/login');
         }} className='py-3 w-full text-white cursor-pointer hover:outline-1 hover:bg-gray-900 active:scale-90'>{textButtonModal}</button>
+      </dialog>
+      <dialog ref={refModalSearch}>
+        <h1>busqueda</h1>
       </dialog>
       {/*----------------------FAKE MENU-----------------------------*/}
       <div className='flex flex-row bg-[rgb(103,103,103)]'>
@@ -235,27 +260,22 @@ export default function chatNovaAI() {
                 <p className={'w-full text-left' + (openMenu ? '' : ' hidden ')}>Settings</p>
               </div>
             </div>
-            <div className={'flex flex-col justify-center max-h-[55%] gap-1 px-3 py-3 rounded-xl' + (openMenu ? ' items-start ' : ' items-center cursor-pointer hover:bg-[rgb(170,0,0)] ')} title={openMenu ? '' : 'Recents chats'}>
+            <div onClick={() => setOpenMenu(true)} className={'flex flex-col justify-center max-h-[55%] gap-1 px-3 py-3 rounded-xl' + (openMenu ? ' items-start ' : ' items-center cursor-pointer hover:bg-[rgb(170,0,0)] ')} title={openMenu ? '' : 'Recents chats'}>
               {openMenu ? (
                 <>
                   <div className='font-bold px-1 py-1'>
                     Recents chats
                   </div>
                   <div className='flex flex-col gap-1 overflow-scroll h-[100%] hidden_scroll w-full'>
-                    {conversations.map((obj: {id: number, title: string}) => (
+                    {conversations?.sort((a: any, b: any) => b.id - a.id).map((obj: {id: number, title: string}) => (
                       <div onClick={() => {
                         setConversationID(obj.id);
+                        setConversationTitle(obj.title);
                         getMessages(obj.id);
-                      }} key={obj.id} className='p-3 rounded-xl min-h-[45px] text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                        {obj.title !== ' ' ? obj.title : 'Whitout conversation'}
+                      }} key={obj.id} className={'p-3 rounded-xl min-h-[45px] text-sm cursor-pointer hover:bg-[rgb(170,0,0)] truncate' + (obj.id === conversationID ? ' bg-[rgb(170,0,0)] ' : '')}>
+                        {obj.title !== '' ? obj.title : 'Whitout conversation'}
                       </div>
                     ))}
-                    <div className='p-3 rounded-xl min-h-[45px] text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
-                    <div className='p-3 rounded-xl min-h-[45px] text-sm cursor-pointer hover:bg-[rgb(170,0,0)]'>
-                      Titulo de chat reciente
-                    </div>
                   </div>                
                 </>                
               ) : <FaCommentDots size={20} />}
@@ -268,54 +288,46 @@ export default function chatNovaAI() {
             refModalPrecuation.current.style.display = 'flex';
             refModalPrecuation.current.showModal();
           }} className={'flex w-full items-center p-2 mb-2 gap-3 hover:bg-[rgb(170,0,0)] rounded-xl cursor-pointer' + (openMenu ? ' justify-left ' : ' justify-center ')}>
-            <FaUser size={20} />
+            {openMenu ? <FaUser size={20} /> : <FaSignOutAlt size={20} />}
             <h3 className={'' + (openMenu ? '' : ' hidden ')} >Log out</h3>
           </div>
         </div>
         {/*----------------------CHAT-----------------------------*/}
-        <div className='flex flex-col items-center w-dvw bg-linear-to-b from-black to-[rgb(60,0,0)]'>
+        <div className='flex flex-col h-full items-center w-dvw bg-linear-to-b from-black to-[rgb(60,0,0)]'>
           <div className='flex justify-end p-2 w-full bg-[rgba(0,0,0,1)] md:justify-end'>
             <h1 className='font-semibold text-xl px-6 py-2 text-white bg-[rgb(60,0,0)] rounded-[50px] tracking-widest'>NOVA-IA</h1>
           </div>
           <div className='flex flex-col gap-5 max-h-[100%] justify-center h-full w-full px-4 pt-5 pb-40 lg:w-[900px]'>
             <div className='w-full'>
-              <p className='p-3 bg-gray-500 whitespace-normal break-all max-w-[45%] w-fit rounded-lg'>Hello user, i'm a chatbot with IA API</p>
+              <p className='p-3 bg-[rgb(100,100,100)] whitespace-normal break-all max-w-[45%] w-fit rounded-lg'>Hello user, i'm a chatbot with IA API</p>
             </div>
-            {message_list.map(obj => (
-              <>
-                <div className='flex justify-end w-full'>
-                  <p className='p-3 bg-gray-500 whitespace-pre-wrap break-all max-w-[45%] w-fit rounded-lg'>{obj.user}</p>
-                </div>
-                <div className='w-full'>
-                  <p className='p-3 bg-gray-500 whitespace-pre-wrap break-all max-w-[45%] w-fit rounded-lg'>{obj.AI}</p>
-                </div>
-              </>                  
-            ))}
             {messages.map((obj: {id: number, role: string, content: string}) => (
-              obj.role === 'user' ? (
-                <>
-                  <div key={obj.id} className='flex justify-end w-full'>
-                    <p className='p-3 bg-gray-500 whitespace-pre-wrap break-all max-w-[45%] w-fit rounded-lg'>{obj.content}</p>
-                  </div>
-                </>                
+              obj?.role === 'user' ? (
+                <div key={obj?.id} className='flex justify-end w-full'>
+                  <p className='p-3 bg-[rgb(100,100,100)] text-white whitespace-pre-wrap break-all max-w-[60%] w-fit rounded-lg'>{obj?.content}</p>
+                </div>
               ) : (
-                <>
-                  <div key={obj.id} className='w-full'>
-                    <p className='p-3 bg-gray-500 whitespace-pre-wrap break-all max-w-[45%] w-fit rounded-lg'>{obj.content}</p>
-                  </div>
-                </>                
+                <div key={obj?.id} className='w-full'>
+                  <p className='p-3 bg-[rgb(50,50,50)] text-white whitespace-pre-wrap max-w-[95%] w-fit rounded-lg'>{obj?.content}</p>
+                </div>
               )
-            ))}              
-            <div className='flex flex-cols items-center justify-between px-2 py-2 w-full fixed left-5 sm:left-10 md:left-15 lg:left-84 bottom-10 max-w-[90%] lg:max-w-[60%] bg-[rgb(80,80,80)] border border-red-400 rounded-3xl text-white'>
-              <div className='flex justify-center items-center w-[5%] py-3 px-1 rounded-4xl bg-[rgb(60,0,0)]'>
-                <FaSearch className='' />
-              </div>
-              <textarea onChange={(e) => setInputUser(e.target.value)} 
-              className={'outline-none w-[90%] px-2 resize-none scrollbar-none' + (inputUser.length > 0 ? ' min-h-[150px] ' : '')} 
-              placeholder='Write your message...'/>
-              <div className='flex justify-center items-end w-[5%] py-3 px-1 rounded-4xl bg-[rgb(60,0,0)] active:scale-90 cursor-pointer'>
-                {inputUser.length > 0 ? <FaLongArrowAltRight /> : <FaMicrophone />}
-              </div>
+            ))}  
+            <div className='flex flex-rows flex-wrap items-center justify-between w-full fixed left-5 sm:left-10 md:left-15 lg:left-84 bottom-10 max-w-[90%] lg:max-w-[60%]'>
+              <p className='w-full text-red-500 text-[0.9rem] ml-4'>{errorGemini}</p>
+              <div className='flex flex-cols items-center justify-between bg-[rgb(80,80,80)] border border-red-400 rounded-3xl text-white w-full p-2'>
+                <div className='flex justify-center items-center w-[5%] py-3 px-1 rounded-4xl bg-[rgb(60,0,0)]'>
+                  <FaSearch className='' />
+                </div>
+                <textarea value={inputUser} onChange={(e) => setInputUser(e.target.value)} 
+                className={'outline-none w-[90%] px-2 resize-none scrollbar-none' + (inputUser.length > 0 ? ' min-h-[150px] ' : '')} 
+                placeholder='Write your message...'/>
+                <div onClick={() => {
+                  setInputUser('');
+                  inputUser.length > 0 ? postMessages(inputUser, conversationID!, conversationTitle) : console.log("Click en Microfono")
+                }} className='flex justify-center items-end w-[5%] py-3 px-1 rounded-4xl bg-[rgb(60,0,0)] active:scale-90 cursor-pointer'>
+                  {inputUser.length > 0 ? <FaLongArrowAltRight /> : <FaMicrophone />}
+                </div>
+              </div>              
             </div>
           </div>  
         </div>

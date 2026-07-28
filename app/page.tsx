@@ -8,6 +8,27 @@ import { useState, useEffect, useRef } from 'react';
 import './styles/all.css';
 import { useRouter } from 'next/navigation';
 
+interface faceUser {
+  id: number
+  name: string
+  last_name: string
+  email: string
+  password: string
+}
+
+interface faceConversations {
+  id: number
+  title: string
+  user_id: number
+}
+
+interface messages {
+  id: number
+  role: string
+  content: string
+  conversation_id: number
+}
+
 export default function chatNovaAI() {
   const [openMenu, setOpenMenu] = useState<boolean>(false);
   const [inputUser, setInputUser] = useState<string>('');
@@ -16,15 +37,18 @@ export default function chatNovaAI() {
   const [conversationID, setConversationID] = useState<number>();
   const [conversationTitle, setConversationTitle] = useState<string>('');
   const [errorGemini, setErrorGemini] = useState<string>('');
+  const [search, setSearch] = useState(false);
+  const [inputSearch, setInputSearch] = useState('');
 
   const [titleModal, setTitleModal] = useState<string>('');
   const [textModal, setTextModal] = useState<string>('');
   const [textButtonModal, setTextButtonModal] = useState<string>('');
+  const [waitingResponse, setWaitingResponse] = useState<boolean>(false);
 
   const [token, setToken] = useState<boolean>(true);
 
   const refModalPrecuation = useRef<any>(null);
-  const refModalSearch = useRef(null);
+  const refSearch = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
 
@@ -38,7 +62,7 @@ export default function chatNovaAI() {
   function invalidToken (): void {
     setToken(false);
     setTitleModal('Invalid access');
-    setTextModal('You need to log in to start chatting with Angel-IA.')
+    setTextModal('You need to log in to start chatting with NOVA-IA.')
     setTextButtonModal('Log in');
     refModalPrecuation.current.style.display = 'flex';
     refModalPrecuation.current.showModal();
@@ -80,7 +104,7 @@ export default function chatNovaAI() {
     }
     getConversations();
 
-  }, [])
+  }, [token])
 
   // useEffect(() => {
   //   const token = localStorage.getItem('token');
@@ -122,13 +146,13 @@ export default function chatNovaAI() {
         }
       })
 
-      if (response.status !== 201) {
+      if (response.status !== 200) {
         console.log("Error at create conversation");
       }
 
       const data = await response.json();
 
-      setConversations([...conversations, {id: data.id, title: !data.title ? 'Whitout conversation' : data.title}])
+      setConversations([...conversations, {id: data.id, title: data.title ? 'Whitout conversation' : data.title}])
       setConversationID(data.id)
       console.log(data.id)
       setMessages([]);
@@ -169,6 +193,10 @@ export default function chatNovaAI() {
     try{
       const token = localStorage.getItem('token');
 
+      setMessages([...messages, {id: 0, content: content, role: 'user'}])
+
+      setWaitingResponse(true);
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/messages`, {
         method: 'POST',
         headers: {
@@ -182,19 +210,22 @@ export default function chatNovaAI() {
         })
       })
 
+      setWaitingResponse(false)
+
       if (response.status !== 200) {
         console.log("ERROR en fetch");
         console.log(response);
         const data = await response.json();
         console.log(data)
         setErrorGemini(data.error)
+        return
       }
 
       const data = await response.json();
       
       setMessages([...messages, data[0], data[1]])
       console.log(data)
-
+      
       setConversations(conversations.map((obj: {id: number, title: string}) => obj.id === conversation_id ? {...obj, title: data[2]} : obj))
 
     } catch(error:any) {
@@ -223,9 +254,6 @@ export default function chatNovaAI() {
           router.push('/login');
         }} className='py-3 w-full text-white cursor-pointer hover:outline-1 hover:bg-gray-900 active:scale-90'>{textButtonModal}</button>
       </dialog>
-      <dialog ref={refModalSearch}>
-        <h1>busqueda</h1>
-      </dialog>
       {/*----------------------FAKE MENU-----------------------------*/}
       <div className='flex flex-row bg-[rgb(103,103,103)]'>
         <div className={'flex flex-col justify-between items-center h-dvh p-1 text-white bg-[rgb(32,0,0)] border-r-1 hidden lg:flex' + (openMenu ? ' animation_menu ' : ' animation_close_menu ')}>
@@ -251,9 +279,23 @@ export default function chatNovaAI() {
                 <FaEdit className='w-auto' size={20} />
                 <p className={'w-full text-left' + (openMenu ? '' : ' hidden ')}>New chat</p>
               </div>
-              <div className='flex flex-row justify-between gap-3 px-3 py-3 rounded-xl cursor-pointer hover:bg-[rgb(170,0,0)]' title={openMenu ? '' : 'Search'}>
+              <div onClick={(e) => {
+                setOpenMenu(true);
+                setSearch(!search);
+                refSearch.current?.focus();
+                }} className={'flex flex-row justify-between gap-3 px-3 py-3 rounded-xl cursor-pointer hover:bg-[rgb(170,0,0)]' + (search ? ' bg-[rgb(170,0,0)] ' : '')} title={openMenu ? '' : 'Search'}>
                 <FaSearch className='w-auto' size={20} />
-                <p className={'w-full text-left' + (openMenu ? '' : ' hidden ')}>Search</p>
+                {search && openMenu ? (
+                  <input onClick={(e) => e.stopPropagation()} 
+                        value={inputSearch} 
+                        onChange={(e) => {
+                          console.log(conversations)
+                          setInputSearch(e.target.value); 
+                        }} 
+                        ref={refSearch} maxLength={25} className='outline-none max-w-[80%]' placeholder='Search...'></input>
+                ) : (
+                  <p className={'w-full text-left' + (openMenu ? '' : ' hidden ')}>Search</p>
+                )}
               </div>
               <div className='flex flex-row justify-between gap-3 px-3 py-3 rounded-xl cursor-pointer hover:bg-[rgb(170,0,0)]' title={openMenu ? '' : 'Settings'}>
                 <FaCog className='w-auto' size={20} />
@@ -267,7 +309,7 @@ export default function chatNovaAI() {
                     Recents chats
                   </div>
                   <div className='flex flex-col gap-1 overflow-scroll h-[100%] hidden_scroll w-full'>
-                    {conversations?.sort((a: any, b: any) => b.id - a.id).map((obj: {id: number, title: string}) => (
+                    {conversations?.map((obj: faceConversations) => obj.title === '' ? {...obj, title: 'Whitout conversation'} : obj).filter((obj: faceConversations) => obj.title.toLowerCase().includes(inputSearch.toLowerCase())).sort((a: any, b: any) => b.id - a.id).map((obj: {id: number, title: string}) => (
                       <div onClick={() => {
                         setConversationID(obj.id);
                         setConversationTitle(obj.title);
@@ -293,7 +335,7 @@ export default function chatNovaAI() {
           </div>
         </div>
         {/*----------------------CHAT-----------------------------*/}
-        <div className='flex flex-col h-full items-center w-dvw bg-linear-to-b from-black to-[rgb(60,0,0)]'>
+        <div className='flex flex-col h-auto min-h-[100dvh] items-center w-dvw bg-linear-to-b from-black to-[rgb(60,0,0)]'>
           <div className='flex justify-end p-2 w-full bg-[rgba(0,0,0,1)] md:justify-end'>
             <h1 className='font-semibold text-xl px-6 py-2 text-white bg-[rgb(60,0,0)] rounded-[50px] tracking-widest'>NOVA-IA</h1>
           </div>
@@ -304,7 +346,7 @@ export default function chatNovaAI() {
             {messages.map((obj: {id: number, role: string, content: string}) => (
               obj?.role === 'user' ? (
                 <div key={obj?.id} className='flex justify-end w-full'>
-                  <p className='p-3 bg-[rgb(100,100,100)] text-white whitespace-pre-wrap break-all max-w-[60%] w-fit rounded-lg'>{obj?.content}</p>
+                  <p className='p-3 bg-[rgb(100,100,100)] text-white whitespace-pre-wrap break-all max-w-[80%] w-fit rounded-lg'>{obj?.content}</p>
                 </div>
               ) : (
                 <div key={obj?.id} className='w-full'>
@@ -312,10 +354,22 @@ export default function chatNovaAI() {
                 </div>
               )
             ))}  
+            {waitingResponse ? (
+              <div className='w-full'>
+                <p className='flex flex-cols items-end p-3 bg-[rgb(50,50,50)] text-white whitespace-pre-wrap max-w-[95%] w-fit rounded-lg'>
+                  Thinking
+                  <span className='text-2xl flex flex-cols'>
+                    <span className='dot_one'> .</span>
+                    <span className='dot_one'> .</span>
+                    <span className='dot_one'> .</span>
+                  </span>
+                </p>
+              </div>
+            ) : ''}
             <div className='flex flex-rows flex-wrap items-center justify-between w-full fixed left-5 sm:left-10 md:left-15 lg:left-84 bottom-10 max-w-[90%] lg:max-w-[60%]'>
               <p className='w-full text-red-500 text-[0.9rem] ml-4'>{errorGemini}</p>
               <div className='flex flex-cols items-center justify-between bg-[rgb(80,80,80)] border border-red-400 rounded-3xl text-white w-full p-2'>
-                <div className='flex justify-center items-center w-[5%] py-3 px-1 rounded-4xl bg-[rgb(60,0,0)]'>
+                <div className='flex justify-center items-center w-[15%] sm:w-[10%] md:w-[7%] lg:w-[5%] py-3 px-1 rounded-4xl bg-[rgb(60,0,0)]'>
                   <FaSearch className='' />
                 </div>
                 <textarea value={inputUser} onChange={(e) => setInputUser(e.target.value)} 
@@ -324,7 +378,7 @@ export default function chatNovaAI() {
                 <div onClick={() => {
                   setInputUser('');
                   inputUser.length > 0 ? postMessages(inputUser, conversationID!, conversationTitle) : console.log("Click en Microfono")
-                }} className='flex justify-center items-end w-[5%] py-3 px-1 rounded-4xl bg-[rgb(60,0,0)] active:scale-90 cursor-pointer'>
+                }} className='flex justify-center items-end w-[15%] sm:w-[10%] md:w-[7%] lg:w-[5%] py-3 px-1 rounded-4xl bg-[rgb(60,0,0)] active:scale-90 cursor-pointer'>
                   {inputUser.length > 0 ? <FaLongArrowAltRight /> : <FaMicrophone />}
                 </div>
               </div>              

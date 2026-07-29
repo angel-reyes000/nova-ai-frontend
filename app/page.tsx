@@ -271,7 +271,7 @@ export default function chatNovaAI() {
         }} className='py-3 w-full text-white cursor-pointer hover:outline-1 hover:bg-gray-900 active:scale-90'>{textButtonModal}</button>
       </dialog>
       {/*----------------------FAKE MENU-----------------------------*/}
-      <div className='flex flex-row bg-[rgb(103,103,103)]'>
+      <div className='flex flex-row bg-linear-to-b from-black to-[rgb(60,0,0)]'>
         <div className={'flex flex-col justify-between items-center h-dvh p-1 text-white bg-[rgb(32,0,0)] border-r-1 hidden lg:flex' + (openMenu ? ' animation_menu ' : ' animation_close_menu ')}>
           <div className='flex flex-col justify-start w-full gap-10 max-h-[100%] overflow-hidden'>
             <div className={'flex flex-row px-2 py-3' + (openMenu ? ' justify-between ' : ' justify-center ')}>
@@ -313,7 +313,7 @@ export default function chatNovaAI() {
                   <p className={'w-full text-left' + (openMenu ? '' : ' hidden ')}>Search</p>
                 )}
               </div>
-              <div className='flex flex-row justify-between gap-3 px-3 py-3 rounded-xl cursor-pointer hover:bg-[rgb(170,0,0)]' title={openMenu ? '' : 'Settings'}>
+              <div onClick={() => router.push('/settings')} className='flex flex-row justify-between gap-3 px-3 py-3 rounded-xl cursor-pointer hover:bg-[rgb(170,0,0)]' title={openMenu ? '' : 'Settings'}>
                 <FaCog className='w-auto' size={20} />
                 <p className={'w-full text-left' + (openMenu ? '' : ' hidden ')}>Settings</p>
               </div>
@@ -351,7 +351,7 @@ export default function chatNovaAI() {
           </div>
         </div>
         {/*----------------------CHAT-----------------------------*/}
-        <div className='flex flex-col h-auto min-h-[100dvh] items-center w-dvw bg-linear-to-b from-black to-[rgb(60,0,0)]'>
+        <div className='flex flex-col h-auto min-h-[100dvh] items-center w-dvw'>
           <div className='flex justify-end p-2 w-full bg-[rgba(0,0,0,1)] md:justify-end'>
             <h1 className='font-semibold text-xl px-6 py-2 text-white bg-[rgb(60,0,0)] rounded-[50px] tracking-widest'>NOVA-IA</h1>
           </div>
@@ -394,7 +394,7 @@ export default function chatNovaAI() {
                 <div onClick={() => {
                   setInputUser('');
                   inputUser.length > 0 ? postMessages(inputUser, conversationID!, conversationTitle) : console.log("Click en Microfono")
-                }} className='flex justify-center items-end w-[15%] sm:w-[10%] md:w-[7%] lg:w-[5%] py-3 px-1 rounded-4xl bg-[rgb(60,0,0)] active:scale-90 cursor-pointer'>
+                }} className={'flex justify-center items-end w-[15%] sm:w-[10%] md:w-[7%] lg:w-[5%] py-3 px-1 rounded-4xl bg-[rgb(60,0,0)] active:scale-90 cursor-pointer' + (waitingResponse ? ' pointer-events-none opacity-50 ' : '')}>
                   {inputUser.length > 0 ? <FaLongArrowAltRight /> : <FaMicrophone />}
                 </div>
               </div>              

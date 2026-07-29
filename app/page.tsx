@@ -34,11 +34,12 @@ export default function chatNovaAI() {
   const [inputUser, setInputUser] = useState<string>('');
   const [messages, setMessages] = useState<any>([]);
   const [conversations, setConversations] = useState<any>();
-  const [conversationID, setConversationID] = useState<number>();
+  const [conversationID, setConversationID] = useState<number>(0);
   const [conversationTitle, setConversationTitle] = useState<string>('');
   const [errorGemini, setErrorGemini] = useState<string>('');
   const [search, setSearch] = useState(false);
   const [inputSearch, setInputSearch] = useState('');
+  const [userName, setUserName] = useState('');
 
   const [titleModal, setTitleModal] = useState<string>('');
   const [textModal, setTextModal] = useState<string>('');
@@ -96,13 +97,16 @@ export default function chatNovaAI() {
         }
 
         const data = await response.json();
-        setConversations(data);        
+        setConversations(data[0]);       
+        setUserName(data[1]);
         
       } catch (error) {
         console.log("Error to get conversation");
       }
     }
     getConversations();
+
+    console.log("GET CONVERSATIONS", token)
 
   }, [token])
 
@@ -154,9 +158,13 @@ export default function chatNovaAI() {
 
       setConversations([...conversations, {id: data.id, title: data.title ? 'Whitout conversation' : data.title}])
       setConversationID(data.id)
+      setConversationTitle(data.title)
+      console.log(conversationID)
       console.log(data.id)
       setMessages([]);
       router.refresh()
+
+      return data.id
 
     } catch (error) {
       console.log("Error in postConversation")
@@ -195,6 +203,14 @@ export default function chatNovaAI() {
 
       setMessages([...messages, {id: 0, content: content, role: 'user'}])
 
+      let conv_id = 0;
+      if (conversation_id === 0) {
+        conv_id = await postConversation();
+      }
+      console.log("conv_id: ", conv_id);
+      console.log("conversation_id", conversation_id)
+      console.log("title: ", title)
+
       setWaitingResponse(true);
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/messages`, {
@@ -205,7 +221,7 @@ export default function chatNovaAI() {
         },
         body: JSON.stringify({
           content: content,
-          conversation_id: conversation_id,
+          conversation_id: conversation_id === 0 ? conv_id : conversation_id,
           title: title
         })
       })
@@ -309,7 +325,7 @@ export default function chatNovaAI() {
                     Recents chats
                   </div>
                   <div className='flex flex-col gap-1 overflow-scroll h-[100%] hidden_scroll w-full'>
-                    {conversations?.map((obj: faceConversations) => obj.title === '' ? {...obj, title: 'Whitout conversation'} : obj).filter((obj: faceConversations) => obj.title.toLowerCase().includes(inputSearch.toLowerCase())).sort((a: any, b: any) => b.id - a.id).map((obj: {id: number, title: string}) => (
+                    {conversations?.map((obj: faceConversations) => obj.title === '' ? {...obj, title: 'Whitout conversation'} : obj).filter((obj: faceConversations) => obj.title?.toLowerCase().includes(inputSearch.toLowerCase())).sort((a: any, b: any) => b.id - a.id).map((obj: {id: number, title: string}) => (
                       <div onClick={() => {
                         setConversationID(obj.id);
                         setConversationTitle(obj.title);
@@ -341,7 +357,7 @@ export default function chatNovaAI() {
           </div>
           <div className='flex flex-col gap-5 max-h-[100%] justify-center h-full w-full px-4 pt-5 pb-40 lg:w-[900px]'>
             <div className='w-full'>
-              <p className='p-3 bg-[rgb(100,100,100)] whitespace-normal break-all max-w-[45%] w-fit rounded-lg'>Hello user, i'm a chatbot with IA API</p>
+              <p className='p-3 bg-[rgb(100,100,100)] whitespace-normal break-all max-w-[45%] w-fit rounded-lg'>{`Hello ${userName}, i'm a chatbot with IA API`}</p>
             </div>
             {messages.map((obj: {id: number, role: string, content: string}) => (
               obj?.role === 'user' ? (

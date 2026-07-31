@@ -6,6 +6,7 @@ import Logo from '../../public/images/LogoNovaAI.png';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import GoogleLoginButton from '../components/GoogleLoginButton';
 
 export default function Signup() {
   const [name, setName] = useState<string>('');
@@ -87,14 +88,14 @@ export default function Signup() {
                 <p className={'text-right text-[0.9rem] font-normal' + (text !== 'Creating...' ? ' text-red-500 ' : ' text-blue-400 ')}>{text}</p>
               </label>
             </div>
-            <div className='h-full mt-8'>
+            <div className='h-full mt-6'>
               <button type='submit' className='h-full w-full bg-red-600 font-medium text-lg p-2 rounded-lg cursor-pointer active:scale-95 hover:bg-red-800'>Sign up</button>
             </div>
-            <div className='text-center'>
-              <p>or</p>
+            <div className='flex justify-center items-center bg-white h-[1px] my-3 text-[0.9rem]'>
+              <p className='bg-[rgb(81,0,0)] w-fit px-4 rounded-4xl'>or</p>
             </div>
             <div className='flex items-cenetr justify-center'>
-              <button className='w-full'>Cuadro google</button>
+              <GoogleLoginButton />
             </div>
             <div className='text-center'>
               <p>Already have an account? <Link href='/login' className='text-blue-400 underline'>Log in</Link></p>

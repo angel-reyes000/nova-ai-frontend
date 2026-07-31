@@ -93,3 +93,41 @@
         transform: translateY(1.5);
     }
 }
+
+.message_delete {
+    animation-name: move_message_delete;
+    animation-duration: 1s;
+    animation-delay: 0ms;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: 1;
+}
+
+@keyframes move_message_delete {
+    from {
+        right: -400px;
+    } to {
+        right: 20px;
+    }
+}
+
+.active_voice {
+    animation-name: chatVoice;
+    animation-duration: 1s;
+    animation-delay: 0ms;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@keyframes chatVoice {
+    0% {
+        transform: scale(1);
+    } 25% {
+        transform: scale(1.075);
+    } 50% {
+        transform: scale(1.125);
+    } 75% {
+        transform: scale(1.075);
+    } 100% {
+        transform: scale(1);
+    }
+}

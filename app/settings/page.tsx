@@ -1,8 +1,12 @@
 "use client"
 
 import { FaUser, FaLock, FaInfo } from "react-icons/fa";
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { FaExclamationTriangle, FaCheck } from 'react-icons/fa';
+import '../styles/all.css';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 const list_tools = (
     <ul className="list-disc px-6">
@@ -31,10 +35,19 @@ export default function Settings () {
     const [detailsVersion, setDetailsVersion] = useState<boolean>(false);
     const [detailsContact, setDetailsContact] = useState<boolean>(false);
     const [detailsInfo, setDetailsInfo] = useState<boolean>(false);
+    const [messageDelete, setMessageDelete] = useState<boolean>(false);
+
+    const refModalClearAll = useRef<any>(null);
 
     const token = localStorage.getItem('token')
 
     useEffect(() => {
+
+        refModalClearAll.current.style.display = 'none';
+
+        AOS.init({
+            once: true,
+        })
 
         async function getCurrentUser () {
             try {
@@ -60,8 +73,52 @@ export default function Settings () {
         getCurrentUser();
     }, [])
 
+    async function deleteConversations () {
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/conversations`, {
+            method: 'DELETE',
+            headers: {
+                authorization: `Bearer ${token}`,
+            }
+        })
+
+        if (response.status != 200) {
+            console.log("error in deleteConversation");
+            return;
+        };
+
+        const data = await response.json();
+
+        refModalClearAll.current?.close()
+        refModalClearAll.current.style.display = 'none';
+        setMessageDelete(true);
+
+        setTimeout(() => setMessageDelete(false), 5000);
+
+        console.log("DELETED", data);
+
+    }
+
     return (
         <>
+            <div className={"flex flex-cols items-center justify-center fixed right-[20px] top-20 py-1 px-2 text-white bg-green-800 rounded-xl border-1" + (messageDelete ? ' message_delete ' : ' hidden ')}>
+                <FaCheck size={15} />
+                <h1 className="p-2 text-[0.9rem]">Your conversations were deleted successfully</h1>
+            </div>
+            <dialog ref={refModalClearAll} data-aos="fade-up" className="flex flex-col items-center max-w-[400px] text-center p-3 m-auto rounded-lg bg-black text-white">
+                <h1 className="font-bold">Delete conversations?</h1>
+                <div className="flex justify-center w-full my-4">
+                    <FaExclamationTriangle size={70} />
+                </div>
+                <p>Are you sure you want to clear all conversations? This action will permanently delete all your conversations.</p>
+                <div className="flex justify-around w-full my-4">
+                    <button onClick={() => {
+                        refModalClearAll.current?.close()
+                        refModalClearAll.current.style.display = 'none';
+                    }} className="p-2 w-1/3 border-2 border-gray-400 rounded-lg cursor-pointer active:scale-90 hover:bg-gray-800">Cancel</button>
+                    <button onClick={() => deleteConversations()} className="p-2 w-1/3 bg-red-400 rounded-lg cursor-pointer active:scale-90 hover:bg-red-900">Delete</button>
+                </div>
+            </dialog>
             <div className="flex flex-col p-10 gap-5 h-full min-h-fit text-white bg-linear-to-b from-black to-[rgb(60,0,0)]">
                 <div>
                     <p className="p-0 m-0 w-fit text-[1.1rem] hover:cursor-pointer hover:underline hover:text-blue-400"><Link href={'/'}>{'< return'}</Link></p>
@@ -105,7 +162,10 @@ export default function Settings () {
                                     <p className="text-gray-400">This will permanently delete all your conversations</p>
                                 </div>
                                 <div className="border-1 border-red-500 rounded-lg active:scale-90 w-[40%] sm:w-[15%] hover:bg-[rgb(25,25,25)]">
-                                    <button className="w-full h-full p-2 cursor-pointer">Clear</button>
+                                    <button onClick={() => {
+                                        refModalClearAll.current?.showModal()
+                                        refModalClearAll.current.style.display = 'block'
+                                    }} className="w-full h-full p-2 cursor-pointer">Clear</button>
                                 </div>
                             </div>
                         </div>

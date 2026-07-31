@@ -22,7 +22,7 @@ interface faceConversations {
   user_id: number
 }
 
-interface messages {
+interface faceMessages {
   id: number
   role: string
   content: string
@@ -40,6 +40,7 @@ export default function chatNovaAI() {
   const [search, setSearch] = useState(false);
   const [inputSearch, setInputSearch] = useState('');
   const [userName, setUserName] = useState('');
+  const [listening, setListening] = useState(false);
 
   const [titleModal, setTitleModal] = useState<string>('');
   const [textModal, setTextModal] = useState<string>('');
@@ -104,40 +105,14 @@ export default function chatNovaAI() {
         console.log("Error to get conversation");
       }
     }
+
     getConversations();
 
     console.log("GET CONVERSATIONS", token)
 
   }, [token])
 
-  // useEffect(() => {
-  //   const token = localStorage.getItem('token');
-  //   const getMessages = async () => {
-  //     try {
-  //       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/messages/${conversationID}`, {
-  //         method: 'GET',
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       })
-
-  //       const data = await response.json();
-
-  //       console.log(data)
-
-  //       setMessages([0,data,]);
-  //       router.refresh()
-  //       console.log(messages, 'dentro de messages')
-        
-
-  //     } catch (error) {
-  //       console.log("Error in getMessages")
-  //     }
-  //   }
-  //   getMessages()
-  // }, [conversationID])
-
-  async function postConversation () {
+  async function postConversation (nothing: boolean) {
 
     const token = localStorage.getItem('token');
       
@@ -161,10 +136,14 @@ export default function chatNovaAI() {
       setConversationTitle(data.title)
       console.log(conversationID)
       console.log(data.id)
-      setMessages([]);
+      
+      if (nothing){
+        setMessages([])
+      }
+
       router.refresh()
 
-      return data.id
+      return data
 
     } catch (error) {
       console.log("Error in postConversation")
@@ -203,11 +182,16 @@ export default function chatNovaAI() {
 
       setMessages([...messages, {id: 0, content: content, role: 'user'}])
 
-      let conv_id = 0;
+      let conversation;
+      let conv_id;
+      let conv_title;
       if (conversation_id === 0) {
-        conv_id = await postConversation();
+        conversation = await postConversation(false);
+        conv_id = await conversation.id
+        conv_title = await conversation.title
       }
       console.log("conv_id: ", conv_id);
+      console.log("conv_title: ", conv_title);
       console.log("conversation_id", conversation_id)
       console.log("title: ", title)
 
@@ -241,13 +225,68 @@ export default function chatNovaAI() {
       
       setMessages([...messages, data[0], data[1]])
       console.log(data)
+
+      const AI = data[1].content;
+      console.log(AI)
+      let iterationText = '';
+      for (let i = 0; i < AI.length; i++){
+        iterationText += AI[i];
+        console.log(iterationText)
+        setMessages((prev: any) => prev.map((obj: faceMessages) => obj.id == data[1].id ? {...obj, content: iterationText} : obj))
+        await new Promise(r => setTimeout(r, 1))
+      }
+
+      // console.log("MESSAGES[[[[0000]]]]]}",messages.slice(-1))
+      // console.log("MESSagess", messages)
+      // console.log("DATADOS",data[2])
+
+      router.refresh();
       
-      setConversations(conversations.map((obj: {id: number, title: string}) => obj.id === conversation_id ? {...obj, title: data[2]} : obj))
+      setConversations([...conversations, {id: conv_id, title: data[2]}])
+
+      router.refresh();
 
     } catch(error:any) {
       console.log("Error en postMessages: ", error);
     }
   }
+
+  const startListening = () => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
+
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = 'es-MX';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    // Empezó a escuchar
+    recognition.onstart = () => {
+      setListening(true);
+    };
+
+    // Resultado obtenido
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInputUser(transcript);
+    };
+
+    // El usuario dejó de hablar
+    recognition.onspeechend = () => {
+      console.log('Dejó de hablar');
+      recognition.stop();
+    };
+
+    // Terminó completamente
+    recognition.onend = () => {
+      setListening(false);
+      console.log('Reconocimiento finalizado');
+    };
+
+    recognition.start();
+  };
 
 
   return (
@@ -289,7 +328,7 @@ export default function chatNovaAI() {
             </div>
             <div className={'flex flex-col gap-5' + (openMenu ? '' : ' items-center ')}>
               <div onClick={() => {
-                postConversation()
+                postConversation(true)
                 router.refresh()
                 }} className='flex flex-row justify-between gap-3 px-3 py-3 rounded-xl cursor-pointer hover:bg-[rgb(170,0,0)]' title={openMenu ? '' : 'New chat'}>
                 <FaEdit className='w-auto' size={20} />
@@ -383,7 +422,17 @@ export default function chatNovaAI() {
               </div>
             ) : ''}
             <div className='flex flex-rows flex-wrap items-center justify-between w-full fixed left-5 sm:left-10 md:left-15 lg:left-84 bottom-10 max-w-[90%] lg:max-w-[60%]'>
-              <p className='w-full text-red-500 text-[0.9rem] ml-4'>{errorGemini}</p>
+              {listening ? (
+                <p className='flex flex-cols w-full text-[0.9rem] ml-4 text-blue-400 gap-1'>
+                  Listening
+                  <span className='flex flex-cols'>
+                    <span className='dot_one'> .</span>
+                    <span className='dot_one'> .</span>
+                    <span className='dot_one'> .</span>
+                  </span>
+                </p>
+              ) : ''}
+              <p className='w-full text-[0.9rem] ml-4 text-red-500 '>{errorGemini}</p>
               <div className='flex flex-cols items-center justify-between bg-[rgb(80,80,80)] border border-red-400 rounded-3xl text-white w-full p-2'>
                 <div className='flex justify-center items-center w-[15%] sm:w-[10%] md:w-[7%] lg:w-[5%] py-3 px-1 rounded-4xl bg-[rgb(60,0,0)]'>
                   <FaSearch className='' />
@@ -393,8 +442,9 @@ export default function chatNovaAI() {
                 placeholder='Write your message...'/>
                 <div onClick={() => {
                   setInputUser('');
-                  inputUser.length > 0 ? postMessages(inputUser, conversationID!, conversationTitle) : console.log("Click en Microfono")
-                }} className={'flex justify-center items-end w-[15%] sm:w-[10%] md:w-[7%] lg:w-[5%] py-3 px-1 rounded-4xl bg-[rgb(60,0,0)] active:scale-90 cursor-pointer' + (waitingResponse ? ' pointer-events-none opacity-50 ' : '')}>
+                  inputUser.length > 0 ? postMessages(inputUser, conversationID!, conversationTitle) : startListening()
+                }} className={`flex justify-center items-end w-[15%] sm:w-[10%] md:w-[7%] lg:w-[5%] py-3 px-1 rounded-4xl 
+                    bg-[rgb(60,0,0)] active:scale-90 cursor-pointer` + (waitingResponse ? ' pointer-events-none opacity-50 ' : '') + (listening ? ' opacity-50 pointer-events-none active_voice ' : '')}>
                   {inputUser.length > 0 ? <FaLongArrowAltRight /> : <FaMicrophone />}
                 </div>
               </div>              

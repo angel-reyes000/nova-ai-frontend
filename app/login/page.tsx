@@ -6,6 +6,7 @@ import Logo from '../../public/images/LogoNovaAI.png'
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import GoogleLoginButton from '../components/GoogleLoginButton';
 
 export default function Login() {
   const [email, setEmail] = useState<string>('');
@@ -74,11 +75,11 @@ export default function Login() {
             <div className='h-full mt-8'>
               <button type='submit' className='h-full w-full bg-red-600 font-medium text-lg p-2 rounded-lg cursor-pointer active:scale-95 hover:bg-red-800'>Log in</button>
             </div>
-            <div className='text-center'>
-              <p>or</p>
+            <div className='flex justify-center items-center bg-white h-[1px] my-3 text-[0.9rem]'>
+              <p className='bg-[rgb(81,0,0)] w-fit px-4 rounded-4xl'>or</p>
             </div>
-            <div className='flex items-cenetr justify-center'>
-              <button className='w-full'>Cuadro google</button>
+            <div className='flex items-center justify-center'>
+              <GoogleLoginButton />
             </div>
             <div className='text-center'>
               <p>Don't have an account? <Link href='/signup' className='text-blue-400 underline'>Sign up.</Link></p>

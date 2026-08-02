@@ -17,9 +17,9 @@
 
 @keyframes open_menu {
     from {
-        width: 4%;
+        width: 60px;
     } to {
-        width: 15%;
+        width: 240px;
     }
 }
 
@@ -34,9 +34,9 @@
 
 @keyframes close_menu {
     from {
-        width: 15%;
+        width: 240px;
     } to {
-        width: 4%;
+        width: 60px;
     }
 }
 

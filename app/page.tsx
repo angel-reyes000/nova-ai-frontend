@@ -233,7 +233,7 @@ export default function chatNovaAI() {
         iterationText += AI[i];
         console.log(iterationText)
         setMessages((prev: any) => prev.map((obj: faceMessages) => obj.id == data[1].id ? {...obj, content: iterationText} : obj))
-        await new Promise(r => setTimeout(r, 1))
+        await new Promise(r => setTimeout(r, 0))
       }
 
       // console.log("MESSAGES[[[[0000]]]]]}",messages.slice(-1))

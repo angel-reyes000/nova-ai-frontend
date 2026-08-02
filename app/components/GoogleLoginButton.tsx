@@ -4,36 +4,43 @@ import { GoogleLogin } from '@react-oauth/google';
 import { useRouter } from 'next/navigation';
 
 export default function GoogleLoginButton() {
-    const router = useRouter();
+  const router = useRouter();
 
   const handleSuccess = async (credentialResponse: any) => {
-    const token = credentialResponse.credential;
+    const googleToken = credentialResponse.credential;
+
+    console.log('Credential:', googleToken);
+
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/auth/google`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ token }),
-            });
+      console.log("ENTRE FETCH")
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND}/api/auth/google`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token: credentialResponse.credential,
+          }),
+        }
+      );
+      console.log("SALE FETCH")
 
-        const data = await res.json();
+      const data = await res.json();
 
+      console.log("PASA DATA: ", data)
+
+      if (res.ok) {
         localStorage.setItem('token', data.token);
-
-        router.push('/')
-
-        console.log(data);
-
-    } catch (error: any) {
-        console.log("error en GoogleLoginBotton")
+        router.push('/');
+      } else {
+        console.log("BAD DATA:", data);
+      }
+    } catch (error) {
+      console.error("error", error);
     }
-  }
+  };
 
-  return (
-    <GoogleLogin
-      onSuccess={handleSuccess}
-      onError={() => console.log('Login Failed')}
-    />
-    );
+  return <GoogleLogin onSuccess={handleSuccess} onError={() => console.log('Login Failed')} />;
 }

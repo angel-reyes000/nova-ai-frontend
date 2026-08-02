@@ -13,6 +13,7 @@ const list_tools = (
         <li><strong>Frontend: </strong>Next.js with TypeScript and Tailwind CSS, deployed on Vercel.</li>
         <li><strong>Backend: </strong>Node.js with TypeScript using Express.js, deployed on Railway.</li>
         <li><strong>DataBase: </strong>PostgreSQL managed with pgAdmin, deployed on Railway.</li>
+        <li><strong>Authentication & Security:</strong> Implemented secure user authentication with JWT, password encryption using bcrypt, and Google OAuth 2.0 integration.</li>
     </ul>
 )
 
@@ -189,13 +190,13 @@ export default function Settings () {
                                 <summary className="flex justify-between items-center list-none">Contact and suggestions
                                     <span className={"text-[1.2rem]" + (detailsContact ? ' rotate-90 ' : '')} >{'>'}</span>
                                 </summary>
-                                <p className="text-[0.9rem] text-gray-400 hover:underline w-fit px-2">Contact me: <a href="mailto:ar731684@gmail.com" style={{color: 'rgb(107, 169, 255)'}}>ar731684@gmail.com</a></p>
+                                <p className="text-[0.9rem] text-gray-400 w-fit px-2">Contact me: <a href="mailto:ar731684@gmail.com" className="hover:underline" style={{color: 'rgb(107, 169, 255)'}}>ar731684@gmail.com</a></p>
                             </details>
                             <details onClick={() => setDetailsInfo(!detailsInfo)} className="cursor-pointer">
                                 <summary className="flex justify-between items-center list-none">Description
                                     <span className={"text-[1.2rem]" + (detailsInfo ? ' rotate-90 ' : '')} >{'>'}</span>
                                 </summary>
-                                <p className="text-[0.9rem] text-gray-400 whitespace-pre-wrap px-2 max-w-[90%]">
+                                <p className="text-[0.9rem] text-gray-400 whitespace-pre-wrap px-2 max-w-[100%]">
                                     {description}
                                 </p>
                             </details>

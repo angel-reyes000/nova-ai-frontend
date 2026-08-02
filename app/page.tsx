@@ -3,7 +3,7 @@
 import Logo from '../public/images/LogoNovaAI.png';
 import Image from 'next/image';
 import '../app/styles/all.css';
-import { FaCircle, FaSignOutAlt, FaPlus, FaCommentDots, FaSearch, FaCog, FaEdit, FaMicrophone, FaUser, FaLongArrowAltRight, FaExclamationCircle, FaExclamationTriangle } from 'react-icons/fa';
+import { FaCircle, FaSignOutAlt, FaPlus, FaCommentDots, FaSearch, FaCog, FaEdit, FaMicrophone, FaUser, FaLongArrowAltRight, FaExclamationCircle, FaExclamationTriangle, FaBars } from 'react-icons/fa';
 import { useState, useEffect, useRef } from 'react';
 import './styles/all.css';
 import { useRouter } from 'next/navigation';
@@ -326,13 +326,20 @@ export default function chatNovaAI() {
           </div>
         </div>
         {/*----------------------MENU-----------------------------*/}
-        <div className={'flex flex-col justify-between fixed items-center h-dvh p-1 text-white bg-[rgb(32,0,0)] border-r-1 hidden lg:flex' + (openMenu ? ' animation_open_menu ' : ' animation_close_menu ')}>
+        <div className={'flex flex-col justify-between fixed items-center h-dvh p-1 text-white bg-[rbga(0,0,0,0)] lg:bg-[rgb(32,0,0)] border-r-0 lg:border-r-1 z-100' + (openMenu ? ' animation_open_menu bg-[rgb(32,0,0)] ' : ' animation_close_menu ')}>
           <div className='flex flex-col justify-start w-full gap-10 max-h-[100%] overflow-hidden'>
             <div className={'flex flex-row items-center px-2 py-3' + (openMenu ? ' justify-between ' : ' justify-center ')}>
-              <Image onClick={() => setOpenMenu(!openMenu)} src={Logo} width={40} height={40} alt='photo' className='cursor-pointer' />
+              <Image onClick={() => setOpenMenu(!openMenu)} src={Logo} width={40} height={40} alt='photo' className='cursor-pointer hidden lg:flex' />
+              {openMenu ? (
+                <Image onClick={() => setOpenMenu(!openMenu)} src={Logo} width={40} height={40} alt='photo' className='cursor-pointer lg:hidden' />
+              ) : (
+                <div className='w-dvw'>
+                  <FaBars onClick={() => setOpenMenu(!openMenu)} size={35} className='flex text-white lg:hidden' />
+                </div>
+              )}
               <FaPlus onClick={() => setOpenMenu(!openMenu)} size={20} className={openMenu ? ' rotate-45 cursor-pointer ' : 'hidden'} />
             </div>
-            <div className={'flex flex-col gap-5' + (openMenu ? '' : ' items-center ')}>
+            <div className={'flex flex-col gap-5' + (openMenu ? '' : ' items-center hidden lg:flex ')}>
               <div onClick={() => {
                 postConversation(true)
                 router.refresh()
@@ -363,7 +370,7 @@ export default function chatNovaAI() {
                 <p className={'w-full text-left' + (openMenu ? '' : ' hidden ')}>Settings</p>
               </div>
             </div>
-            <div onClick={() => setOpenMenu(true)} className={'flex flex-col justify-center max-h-[55%] gap-1 px-3 py-3 rounded-xl' + (openMenu ? ' items-start ' : ' items-center cursor-pointer hover:bg-[rgb(170,0,0)] ')} title={openMenu ? '' : 'Recents chats'}>
+            <div onClick={() => setOpenMenu(true)} className={'flex flex-col justify-center max-h-[55%] gap-1 px-3 py-3 rounded-xl' + (openMenu ? ' items-start ' : ' items-center cursor-pointer hover:bg-[rgb(170,0,0)] hidden lg:flex ')} title={openMenu ? '' : 'Recents chats'}>
               {openMenu ? (
                 <>
                   <div className='font-bold px-1 py-1'>
@@ -390,7 +397,7 @@ export default function chatNovaAI() {
             setTextButtonModal('Log out')
             refModalPrecuation.current.style.display = 'flex';
             refModalPrecuation.current.showModal();
-          }} className={'flex w-full items-center p-2 mb-2 gap-3 hover:bg-[rgb(170,0,0)] rounded-xl cursor-pointer' + (openMenu ? ' justify-left ' : ' justify-center ')}>
+          }} className={'flex w-full items-center p-2 mb-2 gap-3 hover:bg-[rgb(170,0,0)] rounded-xl cursor-pointer' + (openMenu ? ' justify-left ' : ' justify-center hidden lg:flex ')}>
             {openMenu ? <FaUser size={20} /> : <FaSignOutAlt size={20} />}
             <h3 className={'' + (openMenu ? '' : ' hidden ')} >Log out</h3>
           </div>
@@ -402,7 +409,7 @@ export default function chatNovaAI() {
           </div>
           <div className='flex flex-col gap-5 max-h-[100%] justify-center h-full w-full px-4 pt-5 pb-40 lg:w-[900px]'>
             <div className='w-full'>
-              <p className='p-3 bg-[rgb(100,100,100)] whitespace-normal break-all max-w-[45%] w-fit rounded-lg'>{`Hello ${userName}, i'm a chatbot with IA API`}</p>
+              <p className='p-3 bg-[rgb(100,100,100)] whitespace-normal break-all max-w-[95%] w-fit rounded-lg'>{`Hello ${userName}, i'm a chatbot with IA API`}</p>
             </div>
             {messages.map((obj: {id: number, role: string, content: string}) => (
               obj?.role === 'user' ? (
@@ -427,7 +434,7 @@ export default function chatNovaAI() {
                 </p>
               </div>
             ) : ''}
-            <div className='flex flex-rows flex-wrap items-center justify-between w-full fixed left-5 sm:left-10 md:left-15 lg:left-84 bottom-10 max-w-[90%] lg:max-w-[60%]'>
+            <div className='flex flex-rows flex-wrap items-center justify-between w-full fixed left-5 sm:left-10 md:left-15 lg:left-64 xl:left-84 bottom-10 max-w-[90%] lg:max-w-[60%]'>
               {listening ? (
                 <p className='flex flex-cols w-full text-[0.9rem] ml-4 text-blue-400 gap-1'>
                   Listening

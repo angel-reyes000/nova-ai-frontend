@@ -145,19 +145,19 @@ export default function Settings () {
                                 <h2 className="flex items-center gap-2 font-bold text-[1.2rem]" ><FaUser className="inline" />Account</h2>
                             </div>
                             <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-                                <div className="w-[45%]">
+                                <div className="w-[90%] lg:w-[45%]">
                                     <h3 className="font-semibold text-[1.1rem]">Name</h3>
                                     <p className="text-gray-400">{name}</p>
                                 </div>
-                                <div className="w-[45%]">
+                                <div className="w-[90%] lg:w-[45%]">
                                     <h3 className="font-semibold text-[1.1rem]">Last name</h3>
                                     <p className="text-gray-400">{lastName}</p>
                                 </div>
-                                <div className="w-[45%]">
+                                <div className="w-[90%] lg:w-[45%]">
                                     <h3 className="font-semibold text-[1.1rem]">Email</h3>
                                     <p className="text-gray-400">{email}</p>
                                 </div>
-                                <div className="w-[45%]">
+                                <div className="w-[90%] lg:w-[45%]">
                                     <h3 className="font-semibold text-[1.1rem]">Session created</h3>
                                     <p className="text-gray-400">{sessionCreated}</p>
                                 </div>

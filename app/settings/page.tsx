@@ -40,11 +40,11 @@ export default function Settings () {
 
     const refModalClearAll = useRef<any>(null);
 
-    const token = localStorage.getItem('token')
-
     useEffect(() => {
 
         refModalClearAll.current.style.display = 'none';
+
+        const token = localStorage.getItem('token')
 
         AOS.init({
             once: true,
@@ -75,6 +75,8 @@ export default function Settings () {
     }, [])
 
     async function deleteConversations () {
+
+        const token = localStorage.getItem('token');
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/conversations`, {
             method: 'DELETE',

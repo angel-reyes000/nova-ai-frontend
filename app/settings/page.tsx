@@ -49,10 +49,10 @@ export default function Settings () {
 
         const token = localStorage.getItem('token')
 
-        // if (!token) {
-        //     router.push('/');
-        //     return
-        // }
+        if (!token) {
+            router.push('/');
+            return
+        }
 
         AOS.init({
             once: true,

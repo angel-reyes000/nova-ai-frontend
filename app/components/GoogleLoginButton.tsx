@@ -10,6 +10,7 @@ export default function GoogleLoginButton() {
     const googleToken = credentialResponse.credential;
 
     console.log('Credential:', googleToken);
+    console.log("ENV: ", process.env.NEXT_PUBLIC_BACKEND)
 
     try {
       console.log("ENTRE FETCH")

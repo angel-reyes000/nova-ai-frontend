@@ -28,14 +28,8 @@ export default function GoogleLoginButton() {
       );
       console.log("SALE FETCH")
 
-      console.log('STATUS:', res.status);
-
-
-
-      const responseText = await res.text();
-      console.log('TEXT:', responseText);
-      
       const data = await res.json();
+
       console.log("PASA DATA: ", data)
 
       if (res.ok) {

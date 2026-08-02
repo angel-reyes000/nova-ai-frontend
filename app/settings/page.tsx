@@ -49,10 +49,10 @@ export default function Settings () {
 
         const token = localStorage.getItem('token')
 
-        if (!token) {
-            router.push('/');
-            return
-        }
+        // if (!token) {
+        //     router.push('/');
+        //     return
+        // }
 
         AOS.init({
             once: true,
@@ -112,7 +112,7 @@ export default function Settings () {
 
     return (
         <>
-            <div>
+            <div className="min-h-full">
                 <div className={"flex flex-cols items-center justify-center fixed right-[20px] top-20 py-1 px-2 text-white bg-green-800 rounded-xl border-1" + (messageDelete ? ' message_delete ' : ' hidden ')}>
                     <FaCheck size={15} />
                     <h1 className="p-2 text-[0.9rem]">Your conversations were deleted successfully</h1>

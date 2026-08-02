@@ -51,6 +51,7 @@ export default function chatNovaAI() {
 
   const refModalPrecuation = useRef<any>(null);
   const refSearch = useRef<HTMLInputElement>(null);
+  const refScroll = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
 
@@ -111,6 +112,11 @@ export default function chatNovaAI() {
     console.log("GET CONVERSATIONS", token)
 
   }, [token])
+
+  useEffect(() => {
+    refScroll.current?.scrollIntoView({ behavior: "smooth" });
+    console.log("SCROLL", refScroll.current)
+  }, [messages, ])
 
   async function postConversation (nothing: boolean) {
 
@@ -449,7 +455,8 @@ export default function chatNovaAI() {
                 </div>
               </div>              
             </div>
-          </div>  
+          </div> 
+          <div ref={refScroll} /> 
         </div>
       </div>
     </>

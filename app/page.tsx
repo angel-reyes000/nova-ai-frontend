@@ -9,6 +9,7 @@ import './styles/all.css';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import MarkdownRenderer from './components/markdownForAI';
 
 interface faceUser {
   id: number
@@ -411,7 +412,7 @@ export default function chatNovaAI() {
           </div>
           <div className='flex flex-col gap-5 max-h-[100%] justify-center h-full w-full px-4 pt-5 pb-40 lg:w-[900px]'>
             <div className='w-full'>
-              <p className='p-3 bg-[rgb(100,100,100)] whitespace-normal break-all max-w-[95%] w-fit rounded-lg'>{`Hello ${userName}, i'm a chatbot with IA API`}</p>
+              <p className='p-3 bg-[rgb(100,100,100)] whitespace-normal text-white break-all max-w-[95%] w-fit rounded-lg'>{`Hello ${userName}, i'm a chatbot with IA API`}</p>
             </div>
             {messages.map((obj: {id: number, role: string, content: string}) => (
               obj?.role === 'user' ? (
@@ -423,9 +424,7 @@ export default function chatNovaAI() {
               ) : (
                 <div key={obj?.id} className='w-full'>
                   <div className='p-3 bg-[rgb(50,50,50)] text-white whitespace-pre-wrap max-w-[95%] w-fit rounded-lg'>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {obj?.content}
-                    </ReactMarkdown>                    
+                    <MarkdownRenderer text={obj?.content} />                    
                   </div>
                 </div>
               )

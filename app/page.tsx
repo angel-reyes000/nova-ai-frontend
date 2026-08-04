@@ -7,6 +7,8 @@ import { FaCircle, FaSignOutAlt, FaPlus, FaCommentDots, FaSearch, FaCog, FaEdit,
 import { useState, useEffect, useRef } from 'react';
 import './styles/all.css';
 import { useRouter } from 'next/navigation';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface faceUser {
   id: number
@@ -414,11 +416,17 @@ export default function chatNovaAI() {
             {messages.map((obj: {id: number, role: string, content: string}) => (
               obj?.role === 'user' ? (
                 <div key={obj?.id} className='flex justify-end w-full'>
-                  <p className='p-3 bg-[rgb(100,100,100)] text-white whitespace-pre-wrap break-all max-w-[80%] w-fit rounded-lg'>{obj?.content}</p>
+                  <p className='p-3 bg-[rgb(100,100,100)] text-white whitespace-pre-wrap break-all max-w-[80%] w-fit rounded-lg'>
+                    {obj?.content}
+                  </p>
                 </div>
               ) : (
                 <div key={obj?.id} className='w-full'>
-                  <p className='p-3 bg-[rgb(50,50,50)] text-white whitespace-pre-wrap max-w-[95%] w-fit rounded-lg'>{obj?.content}</p>
+                  <div className='p-3 bg-[rgb(50,50,50)] text-white whitespace-pre-wrap max-w-[95%] w-fit rounded-lg'>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {obj?.content}
+                    </ReactMarkdown>                    
+                  </div>
                 </div>
               )
             ))}  

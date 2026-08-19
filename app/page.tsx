@@ -453,11 +453,11 @@ export default function chatNovaAI() {
                 </p>
               ) : ''}
               <p className='w-full text-[0.9rem] ml-4 text-red-500 '>{errorGemini}</p>
-              <div className='flex flex-cols items-center justify-between bg-[rgb(80,80,80)] border border-red-400 rounded-3xl text-white w-full p-2'>
+              <div className={'flex flex-cols items-center justify-between border border-red-400 rounded-3xl text-white w-full p-2' + (openMenu ? ' bg-[rgb(80,80,80)] opacity-60 pointer-events-none lg:pointer-events-auto lg:bg-[rgb(80,80,80)] ' : ' bg-[rgb(80,80,80)] ')}>
                 <div className='flex justify-center items-center w-[15%] sm:w-[10%] md:w-[7%] lg:w-[5%] py-3 px-1 rounded-4xl bg-[rgb(60,0,0)]'>
                   <FaSearch className='' />
                 </div>
-                <textarea value={inputUser} onChange={(e) => setInputUser(e.target.value)} 
+                <textarea value={inputUser} onChange={(e) => setInputUser(e.target.value)}
                 className={'outline-none w-[90%] px-2 resize-none scrollbar-none' + (inputUser.length > 0 ? ' min-h-[150px] ' : '')} 
                 placeholder='Write your message...'/>
                 <div onClick={() => {
